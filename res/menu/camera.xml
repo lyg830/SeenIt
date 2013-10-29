@@ -1,10 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
-        <!-- Take picture, appear in main action bar -->
-    <item android:id="@+id/action_camera"
-          android:icon="@drawable/ic_action_camera"
-          android:title="@string/action_camera"
-          android:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
