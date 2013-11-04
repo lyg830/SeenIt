@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
 	
 	/** Called when the user clicks the Camera button */
 	public void openSearch() {
-	    Intent intent = new Intent(this, Camera.class);
+	    Intent intent = new Intent(this, ImageCaptureActivity.class);
 	    startActivity(intent);
 	}
 
