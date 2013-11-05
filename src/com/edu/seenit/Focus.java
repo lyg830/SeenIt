@@ -17,7 +17,12 @@ public class Focus extends View {
     }
 
     public void showFocus() {
-        setDrawable(R.drawable.focus1);
+        setDrawable(R.drawable.focus);
     }
-
+    public void focusFinish() {
+    	setDrawable(R.drawable.focus1);	
+    }
+    public void focusFail() {
+    	setDrawable(R.drawable.focus2);	
+    }
 }
