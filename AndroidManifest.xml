@@ -28,6 +28,7 @@
         </activity>
         <activity
             android:name="com.edu.seenit.ImageCaptureActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_camera" >
         </activity>
     </application>
