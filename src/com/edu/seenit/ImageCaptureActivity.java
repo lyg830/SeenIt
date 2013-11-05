@@ -17,19 +17,25 @@ import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
+import android.hardware.Camera.Area;
 import android.hardware.Camera.PictureCallback;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 
-public class ImageCaptureActivity extends Activity implements FocusManager.Callback, OnClickListener,Camera.AutoFocusCallback, SurfaceHolder.Callback{
+public class ImageCaptureActivity extends Activity implements OnTouchListener, FocusManager.Callback, OnClickListener,Camera.AutoFocusCallback, SurfaceHolder.Callback{
+	final int tab_to_focus = 0;
+	final int default_focus = 1;
 	SurfaceView mSurface;
 	SurfaceHolder holder;
 	ImageButton mButton;
@@ -38,6 +44,8 @@ public class ImageCaptureActivity extends Activity implements FocusManager.Callb
 	Bitmap mBitmap; 
 	FocusManager mFManager;
 	PreviewLayout preLayout;
+	Parameters para;
+	int type;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +61,7 @@ public class ImageCaptureActivity extends Activity implements FocusManager.Callb
 		focus = (Focus)findViewById(R.id.focus);
 		focus.showFocus();
 		preLayout = (PreviewLayout)findViewById(R.id.CameraLayout);
-	
+		mSurface.setOnTouchListener(this);
 	}
 	
 
@@ -89,14 +97,28 @@ public class ImageCaptureActivity extends Activity implements FocusManager.Callb
 
 	@Override
 	public void onClick(View arg0) {
-		 mCamera.autoFocus(this);  
+		if(type == tab_to_focus)
+			capture();
+		else{
+			type = default_focus;
+			mCamera.autoFocus(this); 
+		}
      
 	}
+	
+	@Override
+	public boolean onTouch(View view, MotionEvent me) {
+		// TODO Auto-generated method stub
+		if(mCamera.getParameters().getMaxNumFocusAreas()<=0)
+			return false;
+		return mFManager.onTouch(mSurface.getWidth(),mSurface.getHeight(),me);
+	}
+	
 	@Override
 	public void surfaceChanged(SurfaceHolder arg0, int arg1, int width, int height) {
 		// TODO Auto-generated method stub
 		
-		Camera.Parameters para = mCamera.getParameters();
+		para = mCamera.getParameters();
 		mCamera.setDisplayOrientation(90);
 		para.setPictureFormat(ImageFormat.JPEG);
 		para.setFocusMode("auto");
@@ -144,7 +166,10 @@ public class ImageCaptureActivity extends Activity implements FocusManager.Callb
 	@Override
 	public void onAutoFocus(boolean success, Camera camera) {
 		// TODO Auto-generated method stub
-		mFManager.onAutoFocus(success);
+		List<Area> areas = para.getFocusAreas();
+    	int left = areas.get(0).rect.left;
+    	Log.d("left:", "left" + left);
+		mFManager.onAutoFocus(success, type);
 		//mFManager.updateFocus();
 	}
 	
@@ -185,10 +210,26 @@ public class ImageCaptureActivity extends Activity implements FocusManager.Callb
 		return optimal;
     	
     }
+    
+    @Override
+	public void autoFocus() {
+		// TODO Auto-generated method stub
+    	type = tab_to_focus;
+		mCamera.autoFocus(this);
+	}
     @Override
 	public void capture() {
 		// TODO Auto-generated method stub
     	mCamera.takePicture(null, null, new myPictureCallback());
+    	type = default_focus;
+	}
+    
+    @Override
+	public void setFocus(List<Area> focusArea, List<Area> meteringArea) {
+		// TODO Auto-generated method stub
+		para.setFocusAreas(focusArea);
+		if(para.getMaxNumMeteringAreas()>0)
+			para.setMeteringAreas(meteringArea);
 	}
 
     /*
@@ -246,16 +287,16 @@ public class ImageCaptureActivity extends Activity implements FocusManager.Callb
             	mediaScanIntent.setData(Uri.fromFile(file));
             	sendBroadcast(mediaScanIntent);
             	camera.stopPreview();
-            	camera.startPreview();
+            	camera.startPreview();       	
             	focus.showFocus();
             	mBitmap.recycle();
+            	
             } catch(IOException e){
             	e.printStackTrace();
             }
-    	}
-    	
+    	}    	
     }
-	
 
+	
 }
 
